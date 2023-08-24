@@ -3,7 +3,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class Main {
-    static MemberController controller = new MemberController(); // initiate controller object
+    private static final MemberController controller = new MemberController(); // initiate controller object
 
     public static void main(String[] args) {
         controller.addDummies();
@@ -13,10 +13,10 @@ public class Main {
     private static void showMembersMenu() {
         String[] options = {"Add member", "Update member", "Delete member"};
         String[] tableHeaders = {"Name", "Address", "Phone"};
-        String[][] tableRows = new String[controller.members.size()][3];
-        final int[] selectedIndex = new int[1];
+        String[][] tableRows = new String[controller.getMembersLength()][3];
+        final int[] selectedIndex = {0};
 
-        for (int i = 0; i < controller.members.size(); i++) { // loop through members size & show its value on JTable
+        for (int i = 0; i < controller.getMembersLength(); i++) { // loop through members size & show its value on JTable
             Member member = controller.getMemberByIndex(i);
             tableRows[i][0] = member.getName();
             tableRows[i][1] = member.getAddress();
@@ -39,14 +39,28 @@ public class Main {
         // show the table on a dialog
         int action = JOptionPane.showOptionDialog(null, scrollPane, "", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
 
-        actionMenuNavigation(action, selectedIndex[0]);
+        try {
+            actionMenuNavigation(action, selectedIndex[0]);
+        } catch (IndexOutOfBoundsException e) {
+            showCustomMessageDialog("No member exist.");
+            showMembersMenu();
+        }
     }
 
     private static void actionMenuNavigation(int selectedMenu, int memberIndex) {
         switch (selectedMenu) {
-            case 0 -> addMemberMenu();
-            case 1 -> updateMemberMenu(memberIndex);
-            case 2 -> deleteMember(memberIndex);
+            case 0:
+                addMemberMenu();
+                break;
+            case 1:
+                updateMemberMenu(memberIndex);
+                break;
+            case 2:
+                deleteMember(memberIndex);
+                break;
+            case -1:
+                exitConfirmation();
+                break;
         }
     }
 
@@ -60,7 +74,8 @@ public class Main {
             name = JOptionPane.showInputDialog("Insert your name:", initialValue[0]);
             if (name == null) showMembersMenu(); // go back to showMembersMenu if user click "Cancel"
             else {
-                if (name.equals("")) showCustomMessageDialog("Input cannot be empty."); // show message dialog if form is empty
+                if (name.trim().equals(""))
+                    showCustomMessageDialog("Input cannot be empty."); // show message dialog if form is empty
                 else break;
             }
         }
@@ -69,7 +84,8 @@ public class Main {
             address = JOptionPane.showInputDialog("Insert your address:", initialValue[1]);
             if (address == null) showMembersMenu(); // go back to showMembersMenu if user click "Cancel"
             else {
-                if (address.equals("")) showCustomMessageDialog("Input cannot be empty."); // show message dialog if form is empty
+                if (address.trim().equals(""))
+                    showCustomMessageDialog("Input cannot be empty."); // show message dialog if form is empty
                 else break;
             }
         }
@@ -78,10 +94,12 @@ public class Main {
             phone = JOptionPane.showInputDialog("Insert your phone number:", initialValue[2]);
             if (phone == null) showMembersMenu(); // go back to showMembersMenu if user click "Cancel"
             else {
-                if (phone.equals("")) showCustomMessageDialog("Input cannot be empty."); // show message dialog if form is empty
+                if (phone.trim().equals(""))
+                    showCustomMessageDialog("Input cannot be empty."); // show message dialog if form is empty
                 else {
                     if (phone.matches(numbersOnly)) break;
-                    else showCustomMessageDialog("Input must be numbers only."); // show message dialog if form value contains value other than numbers
+                    else
+                        showCustomMessageDialog("Input must be numbers only."); // show message dialog if form value contains value other than numbers
                 }
             }
         }
@@ -115,13 +133,20 @@ public class Main {
     }
 
     private static void deleteMember(int memberIndex) {
-        int option = JOptionPane.showOptionDialog(null, "Are you sure want to delete this member?", "", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+        Member selectedMember = controller.getMemberByIndex(memberIndex);
+        int option = JOptionPane.showOptionDialog(null, "Are you sure want to delete " + selectedMember.getName() + "?", "", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
         if (option == JOptionPane.YES_OPTION) {
             controller.deleteMember(memberIndex);
             showCustomMessageDialog("Member successfully deleted!");
         }
 
         showMembersMenu();
+    }
+
+    private static void exitConfirmation() {
+        int option = JOptionPane.showConfirmDialog(null, "Are you sure want to exit this program?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (option == JOptionPane.YES_OPTION) System.exit(0);
+        else showMembersMenu();
     }
 
     private static void showCustomMessageDialog(String message) {

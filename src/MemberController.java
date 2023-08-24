@@ -2,11 +2,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MemberController {
-    public List<Member> members = new ArrayList<>();
+    private final List<Member> members = new ArrayList<>();
 
     public void addMember(String name, String address, String phone) {
         Member newMember = new Member(name, address, phone);
         this.members.add(newMember);
+    }
+
+    public int getMembersLength() {
+        return this.members.size();
     }
 
     public Member getMemberByIndex(int index) {
